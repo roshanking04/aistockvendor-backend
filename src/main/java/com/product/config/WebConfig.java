@@ -6,10 +6,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // This maps the URL /uploads/** to the actual folder on your PC
+        // Serve uploaded images — works on both local and Railway
+        String uploadPath = System.getProperty("user.dir") + "/uploads/";
         registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:" + uploadPath)
                 .addResourceLocations("file:uploads/");
     }
 }
