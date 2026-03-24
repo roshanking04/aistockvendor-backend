@@ -7,25 +7,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
 @RequestMapping("/product")
 public class ProductController {
 
-    @Autowired private ProductService service;
+    @Autowired
+    private ProductService service;
 
-    private final String uploadDir =
-        System.getProperty("user.dir") + File.separator + "uploads" + File.separator;
+    // ── Use absolute path so uploads work on Railway ──
+    private String getUploadDir() {
+        String dir = System.getProperty("user.dir") + File.separator + "uploads" + File.separator;
+        File folder = new File(dir);
+        if (!folder.exists()) folder.mkdirs();
+        return dir;
+    }
 
     @PostMapping("/add")
     public ResponseEntity<?> addProduct(@ModelAttribute ProductDTO dto) throws Exception {
-        File dir = new File(uploadDir);
-        if (!dir.exists()) dir.mkdirs();
+        String uploadDir = getUploadDir();
         String fileName = null;
         if (dto.getImage() != null && !dto.getImage().isEmpty()) {
             fileName = System.currentTimeMillis() + "_" + dto.getImage().getOriginalFilename();
-            dto.getImage().transferTo(new File(uploadDir + fileName));
+            Path path = Paths.get(uploadDir + fileName);
+            Files.createDirectories(path.getParent());
+            dto.getImage().transferTo(path.toFile());
         }
         Product p = new Product();
         p.setName(dto.getName());
@@ -51,7 +61,8 @@ public class ProductController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> update(@PathVariable Integer id, @ModelAttribute ProductDTO dto) throws Exception {
+    public ResponseEntity<?> update(@PathVariable Integer id,
+                                    @ModelAttribute ProductDTO dto) throws Exception {
         Product p = service.getById(id);
         p.setName(dto.getName());
         p.setPrice(dto.getPrice());
@@ -60,10 +71,11 @@ public class ProductController {
         if (dto.getStockQuantity() != null) p.setStockQuantity(dto.getStockQuantity());
         if (dto.getCategory()      != null) p.setCategory(dto.getCategory());
         if (dto.getImage() != null && !dto.getImage().isEmpty()) {
-            File dir = new File(uploadDir);
-            if (!dir.exists()) dir.mkdirs();
-            String fileName = System.currentTimeMillis() + "_" + dto.getImage().getOriginalFilename();
-            dto.getImage().transferTo(new File(uploadDir + fileName));
+            String uploadDir = getUploadDir();
+            String fileName  = System.currentTimeMillis() + "_" + dto.getImage().getOriginalFilename();
+            Path path = Paths.get(uploadDir + fileName);
+            Files.createDirectories(path.getParent());
+            dto.getImage().transferTo(path.toFile());
             p.setImage(fileName);
         }
         return ResponseEntity.ok(service.save(p));
