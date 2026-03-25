@@ -20,13 +20,21 @@ public class ProductController {
     private ProductService service;
 
     // ── Use absolute path so uploads work on Railway ──
-    private String getUploadDir() {
+  /*   private String getUploadDir() {
         String dir = System.getProperty("user.dir") + File.separator + "uploads" + File.separator;
         File folder = new File(dir);
         if (!folder.exists()) folder.mkdirs();
         return dir;
     }
-
+*/private String getUploadDir() {
+    // On Railway, 'user.dir' is the root of your app
+    String dir = System.getProperty("user.dir") + File.separator + "uploads" + File.separator;
+    File folder = new File(dir);
+    if (!folder.exists()) {
+        folder.mkdirs(); // Line to ensure folder exists
+    }
+    return dir;
+}
     @PostMapping("/add")
     public ResponseEntity<?> addProduct(@ModelAttribute ProductDTO dto) throws Exception {
         String uploadDir = getUploadDir();
