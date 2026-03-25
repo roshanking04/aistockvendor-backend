@@ -39,7 +39,7 @@ public void addResourceHandlers(ResourceHandlerRegistry registry) {
     System.out.println("🚀 SERVING IMAGES FROM: " + uploadPath);
 }
 }
-*/
+
 package com.product.config;
 
 import org.springframework.context.annotation.Configuration;
@@ -54,34 +54,45 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // 1. Get the absolute path to the 'uploads' directory
         Path uploadDir = Paths.get("uploads").toAbsolutePath();
         String uploadPath = uploadDir.toString();
-
-        // 2. Create the folder automatically if it doesn't exist
         File directory = new File(uploadPath);
         if (!directory.exists()) {
             directory.mkdirs();
             System.out.println("📁 Created missing folder at: " + uploadPath);
         }
 
-        // 3. Add trailing slash for Spring
         if (!uploadPath.endsWith(File.separator)) {
             uploadPath += File.separator;
         }
 
-        // 4. Register the location (Use 'file:///' for Windows compatibility)
         String location = "file:" + uploadPath.replace("\\", "/");
 
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations(location)
                 .setCachePeriod(0);
 
-        // 5. Look at your IDE Console for this message!
         System.out.println("=================================================");
         System.out.println("🚀 IMAGE SERVER IS RUNNING!");
         System.out.println("👉 Put your images in this folder: " + uploadPath);
         System.out.println("👉 Access them at: http://localhost:3869/uploads/filename.jpg");
         System.out.println("=================================================");
+    }
+}*/
+package com.product.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // This line tells Spring: "If someone asks for /uploads/..., 
+        // look inside the 'uploads' folder in my project root."
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("classpath:/static/uploads/", "file:uploads/");
     }
 }
